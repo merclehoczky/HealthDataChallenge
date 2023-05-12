@@ -8,6 +8,8 @@ Created on Fri May 12 15:02:10 2023
 
 import pandas as pd
 
+# Enlarge output display capacity
+pd.set_option('display.max_rows', 500)
 
 # Import Zuerich city accidents dataset
 accidents = pd.read_csv('data/RoadTrafficAccidentLocations.csv', header = 0)
@@ -25,3 +27,19 @@ accidents = accidents.drop(columns = ['AccidentType_de', 'AccidentType_fr', 'Acc
 # View datatypes 
 accidents.dtypes
 
+# View dates 
+print(accidents['AccidentWeekDay'].unique())
+
+print(accidents['AccidentHour'].unique())
+
+print(accidents['AccidentHour_text'].unique())
+
+accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDay_en','AccidentHour_text']].head(20)
+
+accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDay_en','AccidentHour_text']].tail(20)
+
+# Dataset is until 2022 december
+
+# Only keep data in 2019
+
+accidents = accidents[accidents.AccidentYear == 2019]
