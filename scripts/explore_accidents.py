@@ -67,3 +67,13 @@ for row in accidents.index:
 
 accidents['DayCount'] = accidents['DayCount'].astype(int)
 
+def day_to_date(year, day_number):
+    date = datetime.date.fromordinal(datetime.date(year, 1, 1).toordinal() + day_number - 1)
+    return date
+
+for row in accidents.index:
+    year = accidents.at[row, 'AccidentYear']
+    x = accidents.at[row, 'DayCount']
+    accidents['Date'] = accidents['DayCount'].apply(lambda x: day_to_date(year, x))
+
+    
