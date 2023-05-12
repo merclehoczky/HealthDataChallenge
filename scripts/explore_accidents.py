@@ -64,3 +64,6 @@ for row in accidents.index:
         count = count + 1 # Add to the counter (change the dates)
         accidents.at[row+1, 'DayCount'] = count  #Add counter as day counter
          
+
+accidents['DayCount'] = accidents['DayCount'].astype(int)
+
