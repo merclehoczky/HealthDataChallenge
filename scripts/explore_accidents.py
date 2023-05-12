@@ -9,7 +9,7 @@ Created on Fri May 12 15:02:10 2023
 import pandas as pd
 import numpy as np
 import datetime
-
+import calendar
 
 # Enlarge output display capacity
 pd.set_option('display.max_rows', 500)
@@ -67,13 +67,22 @@ for row in accidents.index:
 
 accidents['DayCount'] = accidents['DayCount'].astype(int)
 
+accidents['Date'] = np.nan
+
 def day_to_date(year, day_number):
+    if calendar.isleap(year):
+        days_in_year = 366
+    else:
+        days_in_year = 365
+    if day_number < 1 or day_number > days_in_year:
+        return None
     date = datetime.date.fromordinal(datetime.date(year, 1, 1).toordinal() + day_number - 1)
     return date
 
 for row in accidents.index:
     year = accidents.at[row, 'AccidentYear']
-    x = accidents.at[row, 'DayCount']
-    accidents['Date'] = accidents['DayCount'].apply(lambda x: day_to_date(year, x))
+    day_number = accidents.at[row, 'DayCount']
+    accidents['Date'] = accidents.apply(lambda row: day_to_date(row['AccidentYear'], row['DayCount']), axis=1)
 
     
+
