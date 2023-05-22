@@ -27,6 +27,8 @@ accidents = accidents.drop(columns = ['AccidentType_de', 'AccidentType_fr', 'Acc
                       'AccidentMonth_de', 'AccidentMonth_fr', 'AccidentMonth_it',
                       'AccidentWeekDay_de', 'AccidentWeekDay_fr', 'AccidentWeekDay_it'])
 
+#%% Quick view
+
 # View datatypes 
 accidents.dtypes
 
@@ -42,12 +44,13 @@ accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDa
 accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDay_en','AccidentHour_text']].tail(20)
 
 # Dataset is until 2022 december
+#%% Preprocessing
 
 # Only keep data in 2019
 
 accidents = accidents[accidents.AccidentYear == 2019]
 
-#### Create date fixing loop
+#%%% Create date fixing loop
 # Create new column for date
 accidents["DayCount"] = np.nan
 
@@ -59,7 +62,7 @@ count = 1
 
 # Loop though data and add day counter
 for row in accidents.index:
-    accidents.at[row, 'DayCount'] = count   #Set first day of the month to 1
+    accidents.at[row, 'DayCount'] = count   #Set first day as 1
     if (accidents.at[row, 'AccidentWeekDay'] != accidents.at[row+1, 'AccidentWeekDay']): # If the days change
         count = count + 1 # Add to the counter (change the dates)
         accidents.at[row+1, 'DayCount'] = count  #Add counter as day counter
@@ -84,5 +87,28 @@ for row in accidents.index:
     day_number = accidents.at[row, 'DayCount']
     accidents['Date'] = accidents.apply(lambda row: day_to_date(row['AccidentYear'], row['DayCount']), axis=1)
 
-    
+
+# Here fix date format to YYYY-MM-ddThh:00+01:00 OR break that up in the weather/air quality dataset
+
+
+# Assuming your DataFrame is named "df" and the date column is named "date" and the hour column is named "hour"
+
+# Combine the date and hour columns into a new column
+accidents['Datum'] = pd.to_datetime(accidents['Date']) + pd.to_timedelta(accidents['AccidentHour'], unit='h')
+accidents['Datum'] = accidents['Datum'].dt.strftime('%Y-%m-%dT%H:00+0100')
+
+
+
+
+
+
+#%% Preprocessing and descriptive statistics
+summary = accidents.describe(datetime_is_numeric = True)
+
+print(accidents['AccidentType_en'].value_counts())
+
+print(accidents['AccidentSeverityCategory_en'].value_counts())
+
+print(accidents['AccidentHour'].value_counts())
+
 
