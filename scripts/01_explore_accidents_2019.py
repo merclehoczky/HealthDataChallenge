@@ -15,7 +15,7 @@ import calendar
 pd.set_option('display.max_rows', 500)
 
 # Import Zuerich city accidents dataset
-accidents = pd.read_csv('../data/RoadTrafficAccidentLocations.csv', header = 0)
+accidents = pd.read_csv('data/RoadTrafficAccidentLocations.csv', header = 0)
 
 # View an instance
 accidents.loc[34649, :]
@@ -88,10 +88,8 @@ for row in accidents.index:
     accidents['Date'] = accidents.apply(lambda row: day_to_date(row['AccidentYear'], row['DayCount']), axis=1)
 
 
-# Here fix date format to YYYY-MM-ddThh:00+01:00 OR break that up in the weather/air quality dataset
+# Fix date format to YYYY-MM-ddThh:00+01:00 OR break that up in the weather/air quality dataset
 
-
-# Assuming your DataFrame is named "df" and the date column is named "date" and the hour column is named "hour"
 
 # Combine the date and hour columns into a new column
 accidents['Datum'] = pd.to_datetime(accidents['Date']) + pd.to_timedelta(accidents['AccidentHour'], unit='h')

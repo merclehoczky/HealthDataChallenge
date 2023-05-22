@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 # %% Import dataset
-w19_hr = pd.read_csv('../data/2019/ugz_ogd_meteo_h1_2019.csv', header = 0)
+w19_hr = pd.read_csv('data/2019/ugz_ogd_meteo_h1_2019.csv', header = 0)
 w19_hr
 
 # %% View data
