@@ -15,7 +15,7 @@ import calendar
 pd.set_option('display.max_rows', 500)
 
 # Import Zuerich city accidents dataset
-accidents = pd.read_csv('data/RoadTrafficAccidentLocations.csv', header = 0)
+accidents = pd.read_csv('../data/RoadTrafficAccidentLocations.csv', header = 0)
 
 # View an instance
 accidents.loc[34649, :]
