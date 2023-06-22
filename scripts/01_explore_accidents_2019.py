@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import calendar
+import matplotlib.pyplot as plt
 
 # Enlarge output display capacity
 pd.set_option('display.max_rows', 500)
@@ -105,12 +106,57 @@ accidents['Datum'] = accidents['Datum'].dt.strftime('%Y-%m-%dT%H:00+0100')
 
 
 #%% Preprocessing and descriptive statistics
-summary = accidents.describe(datetime_is_numeric = True)
+summary_accidents = accidents.describe(datetime_is_numeric = True)
+
+## Accident type distribution
 
 print(accidents['AccidentType_en'].value_counts())
 
+# Get the value counts of 'AccidentType_en'
+value_counts = accidents['AccidentType_en'].value_counts()
+
+# Create a bar plot
+plt.figure(figsize=(5,4)) 
+value_counts.plot(kind='bar')
+plt.xlabel('Accident Type')
+plt.ylabel('Count')
+plt.title('Accident Type Distribution')
+for i, count in enumerate(value_counts):
+    plt.annotate(str(count), xy=(i, count), ha='center', va='bottom')  #Show value counts
+plt.show()
+
+
+
+## Accident severity category distribution
+
 print(accidents['AccidentSeverityCategory_en'].value_counts())
 
+# Get the value counts of 'AccidentSeverityCategory_en'
+value_counts = accidents['AccidentSeverityCategory_en'].value_counts()
+# Create a bar plot
+plt.figure(figsize=(5,4)) 
+value_counts.plot(kind='bar')
+plt.xlabel('Accident Severity Category')
+plt.ylabel('Count')
+plt.title('Accident Severity Category  Distribution')
+for i, count in enumerate(value_counts):
+    plt.annotate(str(count), xy=(i, count), ha='center', va='bottom')  #Show value counts
+plt.show()
+
+
+
+## Hours when accident happened distribution
 print(accidents['AccidentHour'].value_counts())
 
+# Get the value counts of 'AccidentSeverityCategory_en'
+value_counts = accidents['AccidentHour'].value_counts()
+# Create a bar plot
+plt.figure(figsize=(10,6)) 
+value_counts.plot(kind='bar')
+plt.xlabel('Accident Hours')
+plt.ylabel('Count')
+plt.title('Accident Hours  Distribution')
+for i, count in enumerate(value_counts):
+    plt.annotate(str(count), xy=(i, count), ha='center', va='bottom')  #Show value counts
+plt.show()
 
