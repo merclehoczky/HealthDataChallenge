@@ -15,7 +15,7 @@ import calendar
 pd.set_option('display.max_rows', 500)
 
 # Import Zuerich city accidents dataset
-accidents = pd.read_csv('../data/RoadTrafficAccidentLocations.csv', header = 0)
+accidents = pd.read_csv('data/RoadTrafficAccidentLocations.csv', header = 0)
 
 # View an instance
 accidents.loc[34649, :]
@@ -50,8 +50,9 @@ accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDa
 
 accidents = accidents[accidents.AccidentYear == 2019]
 
-#%%% Create date fixing loop
-# Create new column for date
+#%%% Create date fixing loops
+
+# Create new column for day count
 accidents["DayCount"] = np.nan
 
 # Reset indices             
@@ -60,18 +61,26 @@ accidents = accidents.reset_index(drop=True)
 # Initialise counter
 count = 1    
 
+
 # Loop though data and add day counter
-for row in accidents.index:
+for row in range(len(accidents.index)):
     accidents.at[row, 'DayCount'] = count   #Set first day as 1
-    if (accidents.at[row, 'AccidentWeekDay'] != accidents.at[row+1, 'AccidentWeekDay']): # If the days change
+    if row < len(accidents.index) - 1 and (accidents.at[row, 'AccidentWeekDay'] != accidents.at[row+1, 'AccidentWeekDay']): # If the days change
         count = count + 1 # Add to the counter (change the dates)
         accidents.at[row+1, 'DayCount'] = count  #Add counter as day counter
          
 
+# Convert it to int
 accidents['DayCount'] = accidents['DayCount'].astype(int)
 
+
+
+# Add dates with uniform format YYYY-MM-dd
+
+# Create new column
 accidents['Date'] = np.nan
 
+# Define function for conversion
 def day_to_date(year, day_number):
     if calendar.isleap(year):
         days_in_year = 366
@@ -82,21 +91,16 @@ def day_to_date(year, day_number):
     date = datetime.date.fromordinal(datetime.date(year, 1, 1).toordinal() + day_number - 1)
     return date
 
-for row in accidents.index:
-    year = accidents.at[row, 'AccidentYear']
-    day_number = accidents.at[row, 'DayCount']
-    accidents['Date'] = accidents.apply(lambda row: day_to_date(row['AccidentYear'], row['DayCount']), axis=1)
+# Apply function and create Date YYYY-MM-dd
+accidents['Date'] = accidents.apply(lambda row: day_to_date(row['AccidentYear'], row['DayCount']), axis=1)
 
 
-# Fix date format to YYYY-MM-ddThh:00+01:00 OR break that up in the weather/air quality dataset
-
+# Create matching date format with other dataset 
+# YYYY-MM-ddThh:00+01:00  #Datum
 
 # Combine the date and hour columns into a new column
 accidents['Datum'] = pd.to_datetime(accidents['Date']) + pd.to_timedelta(accidents['AccidentHour'], unit='h')
 accidents['Datum'] = accidents['Datum'].dt.strftime('%Y-%m-%dT%H:00+0100')
-
-
-
 
 
 
