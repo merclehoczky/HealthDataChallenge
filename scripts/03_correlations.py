@@ -14,48 +14,39 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import scipy.stats as stats
+from sklearn.preprocessing import StandardScaler
 
-# Group the dataset by day and count the number of entries per day
-daily_count = df_19.groupby('Date').size().reset_index(name='EntryCount')
 
-#%% Columns of interest
+# %% Create variable which counts the number of accidents per day   
+# 'EntryCount'
+# Group the dataset by day and count the number of occurrences per day
+daily_count = df_19.groupby(df_19['Date'].dt.date).size().reset_index(name='EntryCount')
+
+# Merge the count of occurrences with the original dataset
+merged_df = pd.merge(df_19, daily_count, left_on=df_19['Date'].dt.date, right_on=daily_count['Date'], how='left')
+merged_df = merged_df.drop(columns=['key_0', 'Date_y']).rename(columns={'Date_x': 'Date'})
+
+# Convert EntryCount to integer
+merged_df['EntryCount'] = merged_df['EntryCount'].astype(int)
+
+
+
+# %% Select columns of interest
 columns_of_interest = ['AccidentType_en', 'AccidentSeverityCategory_en',
                        'AccidentInvolvingPedestrian', 'AccidentInvolvingBicycle', 'AccidentInvolvingMotorcycle',
                        'RoadType_en', 'AccidentWeekDay_en', 'AccidentHour',
-                       'Is_Holiday', 'Is_Weekend', 'Is_RushHour', 
+                       'Is_Holiday', 'Is_Weekend', 'Is_RushHour', 'Is_Rainy',
                        'Hr', 'RainDur', 'T', 'WVs', 'p']
 
-
-#%% Create important variables df
-
-df_select = df_19[['AccidentType_en', 'AccidentSeverityCategory_en',
-                  'AccidentInvolvingPedestrian', 'AccidentInvolvingBicycle', 'AccidentInvolvingMotorcycle',
-                  'RoadType_en', 'AccidentWeekDay_en', 'AccidentHour',
-                  'Is_Holiday', 'Is_Weekend', 'Is_RushHour', 
-                  'Hr', 'RainDur', 'T', 'WVs', 'p', 
-                  'EntryCount']]
+# %% Create selection df with columns of interest and EntryCount
+df_select = merged_df[columns_of_interest + ['EntryCount']]
 
 
 
-#%% ?????
-    
-# Group the dataset by day and count the number of entries per day
-daily_count = df_19.groupby('Date').size().reset_index(name='EntryCount')
-
-
-# Standardize the EntryCount variable
-scaler = StandardScaler()
-daily_count['EntryCount'] = scaler.fit_transform(daily_count[['EntryCount']])
-
-# Merge the count of entries with the original dataset
-merged_df = pd.merge(df_19, daily_count, on='Date')
-
-
+#%% Compute correlation matrix
 
 # Compute the correlation matrix
-corr_matrix = merged_df[['EntryCount', 'Variable1', 'Variable2', 'Variable3']].corr()
-
-
+corr_matrix = df_select[['EntryCount'] + columns_of_interest].corr()
 
 
 #%% Pearson correlation and plot
@@ -74,61 +65,153 @@ r = associations(df_select, ax = ax, cmap = "Blues")
 pearson_matrix = df_select.corr(method = 'pearson')
 
 # Pearson's plot
-# Step 1: Initiating a fig and axis object
+# Initiating a fig and axis object
 fig, ax = plt.subplots(figsize=(18, 16))
-# Step 2: Create a plot
+# Create a plot
 cax = ax.imshow(pearson_matrix.values, interpolation='nearest', cmap='Blues', vmin=-1, vmax=1)
-# Step 3: Set axis tick labels
+# Set axis tick labels
 ax.set_xticks(ticks=range(len(pearson_matrix.columns)))
 ax.set_xticklabels(pearson_matrix.columns, rotation=90)
 ax.set_yticks(ticks=range(len(pearson_matrix.columns)))
 ax.set_yticklabels(pearson_matrix.columns)
-# Step 4: Resize the tick parameters
+# Resize the tick parameters
 ax.tick_params(axis="both", labelsize=8)
-# Step 5: Adding a color bar
+# Adding a color bar
 fig.colorbar(cax).ax.tick_params(labelsize=8)
-# Step 6: Add annotation
+# Add annotation
 for (x, y), t in np.ndenumerate(pearson_matrix):
     ax.text(y, x, "{:.2f}".format(t), ha='center', va='center', fontsize=8)
 
+plt.title('Pearson correlations')
 plt.show()
 
+# With numeric only 
+# Select only numeric variables for Pearson correlation
+numeric_variables = df_select.select_dtypes(include=[np.number])
+
+# Compute Pearson correlation matrix
+pearson_matrix = numeric_variables.corr(method='pearson')
+
+# Plot Pearson correlation matrix
+fig, ax = plt.subplots(figsize=(18, 16))
+cax = ax.imshow(pearson_matrix.values, interpolation='nearest', cmap='Blues', vmin=-1, vmax=1)
+ax.set_xticks(ticks=range(len(pearson_matrix.columns)))
+ax.set_xticklabels(pearson_matrix.columns, rotation=90)
+ax.set_yticks(ticks=range(len(pearson_matrix.columns)))
+ax.set_yticklabels(pearson_matrix.columns)
+ax.tick_params(axis="both", labelsize=8)
+fig.colorbar(cax).ax.tick_params(labelsize=8)
+for (x, y), t in np.ndenumerate(pearson_matrix):
+    ax.text(y, x, "{:.2f}".format(t), ha='center', va='center', fontsize=8)
+
+plt.title('Pearson correlations with numeric variables')
+plt.show()
 
 #%% Spearman's correlation for nonlinear associations
 spearman_matrix = df_select.corr(method='spearman')
 
 # Spearman's plot
-# Step 1: Initiating a fig and axis object
+# Initiating a fig and axis object
 fig, ax = plt.subplots(figsize=(18, 16))
-# Step 2: Create a plot
+# Create a plot
 cax = ax.imshow(spearman_matrix.values, interpolation='nearest', cmap='Blues', vmin=-1, vmax=1)
-# Step 3: Set axis tick labels
+# Set axis tick labels
 ax.set_xticks(ticks=range(len(spearman_matrix.columns)))
 ax.set_xticklabels(spearman_matrix.columns, rotation=90)
 ax.set_yticks(ticks=range(len(spearman_matrix.columns)))
 ax.set_yticklabels(spearman_matrix.columns)
-# Step 4: Resize the tick parameters
+# Resize the tick parameters
 ax.tick_params(axis="both", labelsize=8)
-# Step 5: Adding a color bar
+# Adding a color bar
 fig.colorbar(cax).ax.tick_params(labelsize=8)
-# Step 6: Add annotation
+# Add annotation
 for (x, y), t in np.ndenumerate(spearman_matrix):
     ax.text(y, x, "{:.2f}".format(t), ha='center', va='center', fontsize=8)
 
+plt.title('Spearman correlations')
 plt.show()
 
-#%% Cramer’s V for categorical
-#should select only categorical here
+# With numeric only
+# Select only numeric variables for Spearman correlation
+numeric_variables = df_select.select_dtypes(include=[np.number])
+
+# Compute Spearman correlation matrix
+spearman_matrix = numeric_variables.corr(method='spearman')
+
+# Plot Spearman correlation matrix
+fig, ax = plt.subplots(figsize=(18, 16))
+cax = ax.imshow(spearman_matrix.values, interpolation='nearest', cmap='Blues', vmin=-1, vmax=1)
+ax.set_xticks(ticks=range(len(spearman_matrix.columns)))
+ax.set_xticklabels(spearman_matrix.columns, rotation=90)
+ax.set_yticks(ticks=range(len(spearman_matrix.columns)))
+ax.set_yticklabels(spearman_matrix.columns)
+ax.tick_params(axis="both", labelsize=8)
+fig.colorbar(cax).ax.tick_params(labelsize=8)
+for (x, y), t in np.ndenumerate(spearman_matrix):
+    ax.text(y, x, "{:.2f}".format(t), ha='center', va='center', fontsize=8)
+
+plt.title('Spearman correlations with numeric only')
+plt.show()
+
+
+# %% Pearson's and Spearmen's numeric side by side
+
+# Select only numeric variables for Pearson correlation
+numeric_variables = df_select.select_dtypes(include=[np.number])
+
+# Compute Pearson correlation matrix
+pearson_matrix = numeric_variables.corr(method='pearson')
+
+# Plot Pearson correlation matrix
+fig, axes = plt.subplots(figsize=(18, 16), ncols=2)
+cax1 = axes[0].imshow(pearson_matrix.values, interpolation='nearest', cmap='Blues', vmin=-1, vmax=1)
+axes[0].set_xticks(ticks=range(len(pearson_matrix.columns)))
+axes[0].set_xticklabels(pearson_matrix.columns, rotation=90)
+axes[0].set_yticks(ticks=range(len(pearson_matrix.columns)))
+axes[0].set_yticklabels(pearson_matrix.columns)
+axes[0].tick_params(axis="both", labelsize=8)
+fig.colorbar(cax1, ax=axes[0]).ax.tick_params(labelsize=8)
+for (x, y), t in np.ndenumerate(pearson_matrix):
+    axes[0].text(y, x, "{:.2f}".format(t), ha='center', va='center', fontsize=8)
+axes[0].set_title('Pearson correlations')
+
+# Select only numeric variables for Spearman correlation
+numeric_variables = df_select.select_dtypes(include=[np.number])
+
+# Compute Spearman correlation matrix
+spearman_matrix = numeric_variables.corr(method='spearman')
+
+# Plot Spearman correlation matrix
+cax2 = axes[1].imshow(spearman_matrix.values, interpolation='nearest', cmap='Blues', vmin=-1, vmax=1)
+axes[1].set_xticks(ticks=range(len(spearman_matrix.columns)))
+axes[1].set_xticklabels(spearman_matrix.columns, rotation=90)
+axes[1].set_yticks(ticks=range(len(spearman_matrix.columns)))
+axes[1].set_yticklabels(spearman_matrix.columns)
+axes[1].tick_params(axis="both", labelsize=8)
+fig.colorbar(cax2, ax=axes[1]).ax.tick_params(labelsize=8)
+for (x, y), t in np.ndenumerate(spearman_matrix):
+    axes[1].text(y, x, "{:.2f}".format(t), ha='center', va='center', fontsize=8)
+axes[1].set_title('Spearman correlations')
+
+# Adjust the layout
+plt.tight_layout()
+# Show the plot
+plt.show()
+
+#%% Cramer’s V for categoricals
 
 # Using association_metrics library
 import association_metrics as am
-# Convert columns to Category columns
+# Select columns of Category type
 selected_columns = ['AccidentType_en', 'AccidentSeverityCategory_en',
                   'AccidentInvolvingPedestrian', 'AccidentInvolvingBicycle', 'AccidentInvolvingMotorcycle',
                   'RoadType_en', 'AccidentWeekDay_en', 'AccidentHour',
-                  'Is_Holiday', 'Is_Weekend', 'Is_RushHour', 
+                  'Is_Holiday', 'Is_Weekend', 'Is_RushHour', 'Is_Rainy',
                   'EntryCount']
+
+# Convert selected columns to category data type
 df_cramers = df_select[selected_columns].astype('category')
+
 # Initialize a CramersV object using the pandas.DataFrame (df)
 cramers_v = am.CramersV(df_cramers)
 # It will return a pairwise matrix filled with Cramer's V, where 
@@ -163,7 +246,8 @@ for (x, y), t in np.ndenumerate(cfit):
 
 from scipy.stats import pointbiserialr
 
-boolean_vars = ['Is_Holiday', 'Is_Weekend', 'Is_RushHour', 'AccidentInvolvingPedestrian', 'AccidentInvolvingBicycle', 'AccidentInvolvingMotorcycle']
+boolean_vars = ['Is_Holiday', 'Is_Weekend', 'Is_RushHour', 'Is_Rainy',
+                'AccidentInvolvingPedestrian', 'AccidentInvolvingBicycle', 'AccidentInvolvingMotorcycle']
 pbc_matrix = []
 
 for var in boolean_vars:
