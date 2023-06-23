@@ -15,6 +15,9 @@ import matplotlib.pyplot as plt
 # Enlarge output display capacity
 pd.set_option('display.max_rows', 500)
 
+# Set the display option to show all columns
+pd.set_option('display.max_columns', None)
+
 # Import Zuerich city accidents dataset
 accidents = pd.read_csv('data/RoadTrafficAccidentLocations.csv', header = 0)
 
@@ -33,7 +36,7 @@ accidents = accidents.drop(columns = ['AccidentType_de', 'AccidentType_fr', 'Acc
 # View datatypes 
 accidents.dtypes
 
-# View dates 
+# View date structure 
 print(accidents['AccidentWeekDay'].unique())
 
 print(accidents['AccidentHour'].unique())
@@ -45,13 +48,14 @@ accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDa
 accidents[['AccidentYear', 'AccidentMonth_en','AccidentWeekDay', 'AccidentWeekDay_en','AccidentHour_text']].tail(20)
 
 # Dataset is until 2022 december
+
 #%% Preprocessing
 
 # Only keep data in 2019
 
 accidents = accidents[accidents.AccidentYear == 2019]
 
-#%%% Create date fixing loops
+#%%% Fix date formats
 
 # Create new column for day count
 accidents["DayCount"] = np.nan
@@ -61,7 +65,6 @@ accidents = accidents.reset_index(drop=True)
 
 # Initialise counter
 count = 1    
-
 
 # Loop though data and add day counter
 for row in range(len(accidents.index)):
@@ -77,6 +80,7 @@ accidents['DayCount'] = accidents['DayCount'].astype(int)
 
 
 # Add dates with uniform format YYYY-MM-dd
+# 'Date'
 
 # Create new column
 accidents['Date'] = np.nan
@@ -97,7 +101,8 @@ accidents['Date'] = accidents.apply(lambda row: day_to_date(row['AccidentYear'],
 
 
 # Create matching date format with other dataset 
-# YYYY-MM-ddThh:00+01:00  #Datum
+# YYYY-MM-ddThh:00+01:00  
+#'Datum'
 
 # Combine the date and hour columns into a new column
 accidents['Datum'] = pd.to_datetime(accidents['Date']) + pd.to_timedelta(accidents['AccidentHour'], unit='h')
@@ -105,7 +110,7 @@ accidents['Datum'] = accidents['Datum'].dt.strftime('%Y-%m-%dT%H:00+0100')
 
 
 
-#%% Preprocessing and descriptive statistics
+#%% Descriptive statistics
 summary_accidents = accidents.describe(datetime_is_numeric = True)
 
 ## Accident type distribution

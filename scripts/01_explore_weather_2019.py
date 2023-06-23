@@ -13,11 +13,13 @@ import numpy as np
 w19_hr = pd.read_csv('data/2019/ugz_ogd_meteo_h1_2019.csv', header = 0)
 w19_hr
 
-# %% View data
+# %% View datatypes
 w19_hr.dtypes
 
+# View measurement locations
 print(w19_hr['Standort'].unique())
 
+# View measurement parameters
 print(w19_hr['Parameter'].unique())
 
 # %% Filter parameters
@@ -25,7 +27,9 @@ conditions = ['StrGlo', 'WD', 'WVv']
 filtered = w19_hr.loc[~w19_hr['Parameter'].isin(conditions)]
 filtered.head()
 
-# %% # Create new dataframe with locations sorted under timepoints (long to wide)
+# %% Average hourly measurements
+# Group by date (hours)
+ # Create new dataframe with locations sorted under timepoints (long to wide)
 
 w19_new = pd.pivot(filtered, index = ['Datum', 'Standort'], 
                    columns = ['Parameter'], values = ['Wert'])
@@ -33,7 +37,8 @@ w19_new = pd.pivot(filtered, index = ['Datum', 'Standort'],
 # View levels of indices on columns
 w19_new.columns.levels
 w19_new.columns.get_level_values(1)
-w19_new.columns = w19_new.columns.droplevel() # Drop outermost level (Wert)
+# Drop outermost level (Wert)
+w19_new.columns = w19_new.columns.droplevel() 
 
 w19_new.head(50)
 
@@ -51,7 +56,7 @@ dates
 w19_avg = w19_new.groupby(np.arange(len(w19_new))//3).mean()
 
 # Join average with dates
-    # Make sure that indices are the same
+# Make sure that indices are the same
 w19_avg = w19_avg.reset_index(drop=True)
 w19_avg.index
 
@@ -64,4 +69,5 @@ w19 = pd.merge(w19_avg, dates, left_index = True, right_index = True)
 # Rearrange columns
 w19 = w19[['Datum', 'Hr', 'RainDur', 'T', 'WVs', 'p']]
 
+#View
 w19.head(50)
